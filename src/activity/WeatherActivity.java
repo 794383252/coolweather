@@ -1,5 +1,6 @@
 package activity;
 
+import service.AutoUpdateService;
 import util.HttpCallbackListener;
 import util.HttpUtil;
 import util.LogUtil;
@@ -125,7 +126,7 @@ public class WeatherActivity extends Activity implements OnClickListener {
 	 * @param weatherCode
 	 */
 	private void queryWeatherInfo(String weatherCode) {
-		logUtil.i("这是weatherCode"+weatherCode);
+		logUtil.i("这是weatherCode" + weatherCode);
 		String address = "http://www.weather.com.cn/data/cityinfo/"
 				+ weatherCode + ".html";
 		queryFromServer(address, "weatherCode");
@@ -171,8 +172,10 @@ public class WeatherActivity extends Activity implements OnClickListener {
 					@Override
 					public void run() {
 						publishText.setText("同步失败...");
+
 					}
 				});
+				e.printStackTrace();
 			}
 		});
 	}
@@ -187,10 +190,12 @@ public class WeatherActivity extends Activity implements OnClickListener {
 		temp1Text.setText(prefs.getString("temp1", ""));
 		temp2Text.setText(prefs.getString("temp2", ""));
 		weatherDespText.setText(prefs.getString("weather_deap", ""));
-		publishText.setText("今天" + prefs.getString("publish_time", "")+"发布");
+		publishText.setText("今天" + prefs.getString("publish_time", "") + "发布");
 		currentDateText.setText(prefs.getString("current_date", ""));
 		weatherInfoLayout.setVisibility(View.VISIBLE);
 		cityNameText.setVisibility(View.VISIBLE);
+		Intent intent = new Intent(this, AutoUpdateService.class);
+		startService(intent);
 	}
 
 }

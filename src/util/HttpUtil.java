@@ -16,7 +16,9 @@ public class HttpUtil {
 	 */
 	public static void sendHttpRequest(final String address,
 			final HttpCallbackListener listener) {
-		LogUtil logUtil=new LogUtil();
+		final LogUtil logUtil=new LogUtil();
+		logUtil.i("进入sendHttpRequest");
+		logUtil.i("这是address"+address);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -37,6 +39,7 @@ public class HttpUtil {
 					}
 					if (listener != null) {
 						listener.onFinish(response.toString());
+						logUtil.i("这是response"+response.toString());
 					}
 				} catch (Exception e) {
 					if (listener != null) {

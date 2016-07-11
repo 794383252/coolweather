@@ -31,9 +31,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class ChooseAreaActivity extends Activity implements OnItemClickListener {
-	
-	LogUtil logUtil=new LogUtil();
-	
+
+	LogUtil logUtil = new LogUtil();
+
 	public static final int LEVEL_PROVINCE = 0;
 	public static final int LEVEL_CITY = 1;
 	public static final int LEVEL_COUNTY = 2;
@@ -53,12 +53,17 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 
 	private int currentLevel;
 
+	private boolean isFromWeatherActivity;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
-		if (prefs.getBoolean("city_selected", false)) {
-			Intent intent=new Intent(this,WeatherActivity.class);
+		isFromWeatherActivity = getIntent().getBooleanExtra(
+				"from_weather_activity", true);
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		if (prefs.getBoolean("city_selected", false) && !isFromWeatherActivity) {
+			Intent intent = new Intent(this, WeatherActivity.class);
 			startActivity(intent);
 			finish();
 			return;
@@ -67,7 +72,7 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 		setContentView(R.layout.choose_area);
 		init();
 	}
-	
+
 	/**
 	 * 控件的初始化
 	 */
@@ -77,28 +82,29 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 		adapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, datalist);
 		listView.setAdapter(adapter);
-		coolWeatherDB=CoolWeatherDB.getInstance(this);
+		coolWeatherDB = CoolWeatherDB.getInstance(this);
 		listView.setOnItemClickListener(this);
 		queryProvince();
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		if (currentLevel==LEVEL_PROVINCE) {
-			selectedProvince=provinceList.get(arg2);
+		if (currentLevel == LEVEL_PROVINCE) {
+			selectedProvince = provinceList.get(arg2);
 			queryCity();
-		}else if (currentLevel==LEVEL_CITY) {
-			selectedCity=cityList.get(arg2);
+		} else if (currentLevel == LEVEL_CITY) {
+			selectedCity = cityList.get(arg2);
 			queryCounty();
-		}else if (currentLevel==LEVEL_COUNTY) {
-			String countyCode=countylist.get(arg2).getCounty_code();
-			Intent intent=new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+		} else if (currentLevel == LEVEL_COUNTY) {
+			String countyCode = countylist.get(arg2).getCounty_code();
+			Intent intent = new Intent(ChooseAreaActivity.this,
+					WeatherActivity.class);
 			intent.putExtra("county_code", countyCode);
 			startActivity(intent);
 			finish();
 		}
 	}
-	
+
 	/**
 	 * 查询所有的省，优先从数据库中查询，数据库中没有再从服务器中查询
 	 */
@@ -117,7 +123,7 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			queryFromServer(null, "Province");
 		}
 	}
-	
+
 	/**
 	 * 查询某个省所有的市，优先从数据库中查询，数据库中没有再从服务器中查询
 	 */
@@ -136,7 +142,7 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			queryFromServer(selectedProvince.getProvince_code(), "City");
 		}
 	}
-	
+
 	/**
 	 * 查询某个市下所有的县，优先从数据库中查询，数据库中没有再从服务器中查询
 	 */
@@ -155,9 +161,10 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			queryFromServer(selectedCity.getCity_code(), "County");
 		}
 	}
-	
+
 	/**
 	 * 从服务器中查询数据
+	 * 
 	 * @param code
 	 * @param type
 	 */
@@ -215,7 +222,7 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			}
 		});
 	}
-	
+
 	/**
 	 * 打开加载对话框
 	 */
@@ -227,7 +234,7 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 		}
 		progressDialog.show();
 	}
-	
+
 	/**
 	 * 关闭加载对话框
 	 */
@@ -245,6 +252,11 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 		} else if (currentLevel == LEVEL_CITY) {
 			queryProvince();
 		} else {
+			if (isFromWeatherActivity) {
+				Intent intent = new Intent(ChooseAreaActivity.this,
+						WeatherActivity.class);
+				startActivity(intent);
+			}
 			finish();
 		}
 	}
