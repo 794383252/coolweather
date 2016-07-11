@@ -16,7 +16,10 @@ import model.Province;
 import db.CoolWeatherDB;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -53,11 +56,21 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
+		if (prefs.getBoolean("city_selected", false)) {
+			Intent intent=new Intent(this,WeatherActivity.class);
+			startActivity(intent);
+			finish();
+			return;
+		}
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.choose_area);
 		init();
 	}
-
+	
+	/**
+	 * 控件的初始化
+	 */
 	private void init() {
 		listView = (ListView) findViewById(R.id.list_view);
 		titleText = (TextView) findViewById(R.id.title_text);
@@ -77,9 +90,18 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 		}else if (currentLevel==LEVEL_CITY) {
 			selectedCity=cityList.get(arg2);
 			queryCounty();
+		}else if (currentLevel==LEVEL_COUNTY) {
+			String countyCode=countylist.get(arg2).getCounty_code();
+			Intent intent=new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+			intent.putExtra("county_code", countyCode);
+			startActivity(intent);
+			finish();
 		}
 	}
-
+	
+	/**
+	 * 查询所有的省，优先从数据库中查询，数据库中没有再从服务器中查询
+	 */
 	private void queryProvince() {
 		provinceList = coolWeatherDB.loadProvince();
 		if (provinceList.size() > 0) {
@@ -95,7 +117,10 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			queryFromServer(null, "Province");
 		}
 	}
-
+	
+	/**
+	 * 查询某个省所有的市，优先从数据库中查询，数据库中没有再从服务器中查询
+	 */
 	private void queryCity() {
 		cityList = coolWeatherDB.loadCity(selectedProvince.getId());
 		if (cityList.size() > 0) {
@@ -111,7 +136,10 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			queryFromServer(selectedProvince.getProvince_code(), "City");
 		}
 	}
-
+	
+	/**
+	 * 查询某个市下所有的县，优先从数据库中查询，数据库中没有再从服务器中查询
+	 */
 	private void queryCounty() {
 		countylist = coolWeatherDB.loadCounty(selectedCity.getId());
 		if (countylist.size() > 0) {
@@ -127,7 +155,12 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 			queryFromServer(selectedCity.getCity_code(), "County");
 		}
 	}
-
+	
+	/**
+	 * 从服务器中查询数据
+	 * @param code
+	 * @param type
+	 */
 	private void queryFromServer(final String code, final String type) {
 		String address = null;
 		if (!TextUtils.isEmpty(code)) {
@@ -204,12 +237,6 @@ public class ChooseAreaActivity extends Activity implements OnItemClickListener 
 		}
 	}
 
-	/*
-	 * 暂时没有执行
-	 * 
-	 * (non-Javadoc)
-	 * @see android.app.Activity#onBackPressed()
-	 */
 	@Override
 	public void onBackPressed() {
 		logUtil.i("执行返回键");
